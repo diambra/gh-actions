@@ -1,0 +1,47 @@
+name: Notification Workflow
+on:
+  workflow_call:
+    inputs:
+      status:
+        description: 'The status of the workflow'
+        required: true
+        type: string
+      action:
+        description: 'The action name to use in the message'
+        required: true
+        type: string
+      config:
+        description: 'A json dict mapping status to emoji, colors and text'
+        default: |
+          {
+            "success": {
+              "emoji": ":mechanical_arm:",
+              "result": "succeeded",
+              "color": "#00ff00"
+            },
+            "failure": {
+              "emoji": ":rotating_light:",
+              "result": "failed",
+              "color": "#ff0000"
+            },
+            "cancelled": {
+              "emoji": ":grimacing:",
+              "result": "cancelled",
+              "color": "#aaaaaa"
+            }
+          }
+        required: false
+        type: string
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: notify
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+        webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        color: ${{ fromJson(inputs.config)[inputs.status].color }}
+        username: ${{ github.repository }}
+        message: |
+          ${{ fromJson(inputs.config)[inputs.status].emoji }} ${{ inputs.action }} from ${{ github.event.pull_request.head.ref }} ${{ fromJson(inputs.config)[inputs.status].result }}
