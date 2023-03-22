@@ -59,6 +59,8 @@ jobs:
             exit 1
           fi
 
+          kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
           echo "Deploying branch $BRANCH to namespace $NAMESPACE with tag $TAG"
           ./deploy/deploy "$NAMESPACE" "ghcr.io/${{ github.repository }}:$TAG"
         env:
