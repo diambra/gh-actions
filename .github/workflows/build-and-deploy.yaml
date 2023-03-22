@@ -51,9 +51,20 @@ jobs:
           sudo mv kubectl yaml2json /usr/bin/
           mkdir ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
-          ./deploy/deploy
+
+
+          NAMESPACE="${BRANCH##*/}"
+          if [[ "$NAMESPACE" == "kube-system" ]]; then
+            echo "Illegal branch name" >&2
+            exit 1
+          fi
+
+          echo "Deploying branch $BRANCH to namespace $NAMESPACE with tag $TAG"
+          ./deploy/deploy "$NAMESPACE" "ghcr.io/${{ github.repository }}:$TAG"
         env:
           KUBECONFIG_DATA: "${{ secrets.KUBECONFIG }}"
+          BRANCH: "${{github.head_ref || github.ref_name}}"
+          TAG: "${{github.sha}}"
 
   # Only notify once either for the build failing or the deploy outcome
   notify-build:
