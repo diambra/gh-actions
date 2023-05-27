@@ -7,6 +7,13 @@ on:
         description: 'The image tags to build and deploy, defaults to repo:sha'
         default: "${{ github.repository }}:${{ github.sha }}"
         type: string
+      build_args:
+        description: 'Build arguments to pass to docker build'
+        type: string
+      platforms:
+        description: 'The platforms to build for'
+        type: string
+        default: linux/amd64,linux/arm64
       deploy:
         type: boolean
       notify:
@@ -39,6 +46,8 @@ jobs:
           push: true
           tags: ghcr.io/${{ inputs.tags }}
           context: .
+          build-args: ${{ inputs.build_args }}
+          platforms: ${{ inputs.platforms }}
 
   deploy:
     if: ${{ inputs.deploy }}
