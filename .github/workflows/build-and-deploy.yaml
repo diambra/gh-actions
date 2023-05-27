@@ -3,6 +3,10 @@ name: build-and-deploy
 on:
   workflow_call:
     inputs:
+      tags:
+        description: 'The image tags to build and deploy, defaults to repo:sha'
+        default: "${{ github.repository }}:${{ github.sha }}"
+        type: string
       deploy:
         type: boolean
       notify:
@@ -33,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ghcr.io/${{ inputs.tags }}
           context: .
 
   deploy:
