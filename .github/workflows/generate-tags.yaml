@@ -52,4 +52,6 @@ jobs:
             fi
           done
           echo "tags=${tags[*]}"
+          IFS=,
           echo "tags=${tags[*]}" > "${GITHUB_OUTPUT}"
+          unset IFS
