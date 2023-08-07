@@ -1,0 +1,55 @@
+name: generate-tags
+
+on:
+  workflow_call:
+    inputs:
+      images:
+        description: 'Images to tag'
+        required: true
+        type: string
+    outputs:
+      tags:
+        description: 'Tags to apply to the image'
+        value: ${{ jobs.generate-tags.outputs.tags }}
+
+jobs:
+  generate-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - id: tags
+        run: |
+          set -euo pipefail
+          images="${{inputs.images}}"
+          major_minor="${GITHUB_REF_NAME%.*}"
+          latest_tag=$(git tag --sort=version:refname | tail -n 1)
+
+          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"
+          echo "major_minor=${major_minor}"
+          echo "latest_tag=${latest_tag}"
+          echo "images=${images}"
+
+          tags=()
+
+          for image in $images; do
+            echo "image=${image}"
+            # Always tag with sha and ref name
+            tags+=("${image}:${GITHUB_SHA}")
+            tags+=("${image}:${GITHUB_REF_NAME}")
+
+            # If there is no latest tag, or the latest tag is the same as the version
+            # then tag with the major and minor version
+            if [[ -z "${latest_tag}" || "${GITHUB_REF_NAME}" == "${latest_tag}" ]]; then
+                tags+=("${image}:${major_minor}")
+
+                # - If we're the latest tag, also tag with "latest"
+                tags+=("${image}:latest")
+            fi
+          done
+          echo "tags=${tags[*]}"
+          echo "tags=${tags[*]}" > "${GITHUB_OUTPUT}"
